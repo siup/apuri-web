@@ -1,0 +1,12 @@
+# Użyj na VPS z już działającym Nginx na porcie 80/443.
+# Uruchomienie: docker compose -f docker-compose.host-nginx.yml up -d
+
+services:
+  apuri-web:
+    image: ghcr.io/siup/apuri-web:latest
+    container_name: apuri-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8088:80"
+    volumes:
+      - ./secrets/htpasswd:/run/secrets/htpasswd:ro

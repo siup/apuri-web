@@ -58,19 +58,32 @@ Ten sam użytkownik/hasło chroni obie ścieżki: `/planner/` i `/stormbot/`.
 
 ## 5. Pierwsze uruchomienie
 
+### A) Czysty VPS (bez Nginx na hoście)
+
 ```bash
 cd /opt/apuri
 docker compose pull apuri-web
 docker compose up -d
 ```
 
-Sprawdź logi:
+Stack `nginx-proxy` + `acme-companion` zajmie porty 80/443 i wystawi certyfikat Let's Encrypt.
+
+### B) VPS z już działającym Nginx (np. inne domeny)
 
 ```bash
-docker compose logs -f
+cd /opt/apuri
+docker compose -f docker-compose.host-nginx.yml pull apuri-web
+docker compose -f docker-compose.host-nginx.yml up -d
+
+sudo cp deploy/nginx/apuri.pl.conf /etc/nginx/sites-available/apuri.pl
+sudo ln -sf /etc/nginx/sites-available/apuri.pl /etc/nginx/sites-enabled/apuri.pl
+sudo nginx -t && sudo systemctl reload nginx
+
+# Po ustawieniu DNS na IP VPS:
+sudo certbot --nginx -d apuri.pl -d www.apuri.pl
 ```
 
-Po kilku minutach certyfikat Let's Encrypt powinien zostać wystawiony automatycznie.
+Kontener nasłuchuje tylko na `127.0.0.1:8088`, a hostowy Nginx obsługuje TLS i proxy.
 
 ## 6. Sekrety i zmienna GitHub Actions
 
@@ -111,7 +124,7 @@ Każdy push na `main`:
 
 1. GitHub Actions buduje obraz Docker i wypycha do GHCR (`latest` + hash commita)
 2. Workflow łączy się po SSH z VPS
-3. Na serwerze: `git pull` → `docker compose pull apuri-web` → `docker compose up -d`
+3. Na serwerze: `git pull` → `docker compose -f docker-compose.host-nginx.yml pull` → `up -d`
 
 ## 9. Weryfikacja
 
@@ -122,9 +135,10 @@ Każdy push na `main`:
 ## Rozwiązywanie problemów
 
 **Brak certyfikatu SSL**
-- Sprawdź, czy DNS wskazuje na VPS (`dig apuri.pl`)
+- Sprawdź, czy DNS wskazuje na VPS (`dig apuri.pl`) — jeśli domena idzie przez Cloudflare, ustaw rekord A na IP VPS i wyłącz proxy (szara chmura) na czas certbota
 - Porty 80 i 443 muszą być otwarte w firewallu
-- `docker compose logs acme-companion`
+- Na VPS z hostowym Nginx: `sudo certbot --nginx -d apuri.pl -d www.apuri.pl`
+- Na czystym VPS z docker compose: `docker compose logs acme-companion`
 
 **401 Unauthorized na /planner lub /stormbot**
 - Sprawdź, czy istnieje `secrets/htpasswd`

@@ -56,5 +56,5 @@ jobs:
             set -e
             cd /opt/apuri
             git pull origin main
-            docker compose pull apuri-web
-            docker compose up -d
+            docker compose -f docker-compose.host-nginx.yml pull apuri-web
+            docker compose -f docker-compose.host-nginx.yml up -d
