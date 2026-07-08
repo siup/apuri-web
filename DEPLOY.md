@@ -72,9 +72,11 @@ docker compose logs -f
 
 Po kilku minutach certyfikat Let's Encrypt powinien zostać wystawiony automatycznie.
 
-## 6. Sekrety GitHub Actions
+## 6. Sekrety i zmienna GitHub Actions
 
-W repozytorium: **Settings → Secrets and variables → Actions → New repository secret**
+W repozytorium: **Settings → Secrets and variables → Actions**
+
+### Sekrety (New repository secret)
 
 | Sekret | Opis |
 |--------|------|
@@ -83,6 +85,14 @@ W repozytorium: **Settings → Secrets and variables → Actions → New reposit
 | `VPS_SSH_KEY` | Prywatny klucz SSH (cała zawartość pliku) |
 
 Port SSH domyślnie `22` (w workflow). Jeśli używasz innego portu, zmień `port:` w `.github/workflows/deploy.yml`.
+
+### Zmienna (Variables → New repository variable)
+
+| Zmienna | Wartość | Opis |
+|---------|---------|------|
+| `DEPLOY_TO_VPS` | `true` | Włącza automatyczny deploy po każdym pushu na `main` |
+
+Ustaw `DEPLOY_TO_VPS=true` dopiero po skonfigurowaniu VPS i sekretów SSH.
 
 Użytkownik SSH musi mieć dostęp do `/opt/apuri` i uprawnienia do `docker compose`.
 
