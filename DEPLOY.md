@@ -81,7 +81,8 @@ W repozytorium: **Settings → Secrets and variables → Actions → New reposit
 | `VPS_HOST` | IP lub hostname VPS |
 | `VPS_USER` | Użytkownik SSH (np. `root` lub `deploy`) |
 | `VPS_SSH_KEY` | Prywatny klucz SSH (cała zawartość pliku) |
-| `VPS_PORT` | Port SSH (zwykle `22`) |
+
+Port SSH domyślnie `22` (w workflow). Jeśli używasz innego portu, zmień `port:` w `.github/workflows/deploy.yml`.
 
 Użytkownik SSH musi mieć dostęp do `/opt/apuri` i uprawnienia do `docker compose`.
 

@@ -41,7 +41,7 @@ Szczegółowa instrukcja: [DEPLOY.md](DEPLOY.md)
 Skrót:
 
 1. Skonfiguruj VPS (Docker, DNS, `.env`, `secrets/htpasswd`)
-2. Ustaw sekrety GitHub Actions (`VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_PORT`)
+2. Ustaw sekrety GitHub Actions (`VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`)
 3. Push na `main` — reszta dzieje się automatycznie
 
 ## Styl marki
