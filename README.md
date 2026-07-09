@@ -9,7 +9,7 @@ Statyczna strona główna dla domeny apuri.pl z wdrożeniem Docker na VPS i CI/C
 ├── index.html              # Landing page (publiczny)
 ├── protected/
 │   ├── planner/index.html  # Chroniony placeholder Planner
-│   └── stormbot/index.html # Chroniony placeholder Stormbot
+│   └── stormbot/index.html # Placeholder Stormbot (publiczna subdomena)
 ├── docker/
 │   └── nginx.conf          # Konfiguracja Nginx w kontenerze
 ├── Dockerfile
@@ -22,7 +22,8 @@ Statyczna strona główna dla domeny apuri.pl z wdrożeniem Docker na VPS i CI/C
 
 - **nginx-proxy** + **acme-companion** — reverse proxy z automatycznym Let's Encrypt
 - **apuri-web** — kontener Nginx ze stroną statyczną
-- `/planner/` i `/stormbot/` — chronione Basic Auth (hasło tylko na serwerze, plik `secrets/htpasswd`)
+- `planner.apuri.pl` — chronione Basic Auth
+- `stormbot.apuri.pl` — publiczna subdomena; link `/stormbot/` na stronie głównej wymaga hasła i przekierowuje tam
 
 ## Lokalny podgląd
 

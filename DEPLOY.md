@@ -7,7 +7,17 @@ Instrukcja jednorazowej konfiguracji serwera i ciągłego wdrażania przez GitHu
 - VPS z Ubuntu/Debian (lub inną dystrybucją z Dockerem)
 - Domena `apuri.pl` wskazująca rekordem A na IP VPS
 - Opcjonalnie `www.apuri.pl` jako CNAME lub dodatkowy rekord A
+- Subdomeny `planner.apuri.pl` i `stormbot.apuri.pl` — rekord A na to samo IP VPS (lub CNAME do `apuri.pl`)
 - Konto GitHub z dostępem do repozytorium
+
+## Rekordy DNS
+
+| Host | Typ | Wartość |
+|------|-----|---------|
+| `@` (apuri.pl) | A | IP VPS |
+| `www` | A lub CNAME | IP VPS lub `apuri.pl` |
+| `planner` | A lub CNAME | IP VPS lub `apuri.pl` |
+| `stormbot` | A lub CNAME | IP VPS lub `apuri.pl` |
 
 ## 1. Instalacja Dockera na VPS
 
@@ -36,8 +46,8 @@ nano .env
 Uzupełnij:
 
 ```env
-VIRTUAL_HOST=apuri.pl,www.apuri.pl
-LETSENCRYPT_HOST=apuri.pl,www.apuri.pl
+VIRTUAL_HOST=apuri.pl,www.apuri.pl,planner.apuri.pl,stormbot.apuri.pl
+LETSENCRYPT_HOST=apuri.pl,www.apuri.pl,planner.apuri.pl,stormbot.apuri.pl
 LETSENCRYPT_EMAIL=twoj@email.pl
 ```
 
@@ -54,7 +64,7 @@ htpasswd -Bbc secrets/htpasswd apuri
 # wpisz hasło gdy zostaniesz poproszony
 ```
 
-Ten sam użytkownik/hasło chroni obie ścieżki: `/planner/` i `/stormbot/`.
+Ten sam użytkownik/hasło chroni `planner.apuri.pl` oraz link `/stormbot/` na stronie głównej (przekierowanie na subdomenę). Samą subdomenę `stormbot.apuri.pl` można otworzyć bez hasła, jeśli zna się adres.
 
 ## 5. Pierwsze uruchomienie
 
@@ -80,7 +90,7 @@ sudo ln -sf /etc/nginx/sites-available/apuri.pl /etc/nginx/sites-enabled/apuri.p
 sudo nginx -t && sudo systemctl reload nginx
 
 # Po ustawieniu DNS na IP VPS:
-sudo certbot --nginx -d apuri.pl -d www.apuri.pl
+sudo certbot --nginx -d apuri.pl -d www.apuri.pl -d planner.apuri.pl -d stormbot.apuri.pl
 ```
 
 Kontener nasłuchuje tylko na `127.0.0.1:8088`, a hostowy Nginx obsługuje TLS i proxy.
@@ -129,18 +139,27 @@ Każdy push na `main`:
 ## 9. Weryfikacja
 
 - `https://apuri.pl` — publiczna strona główna
-- `https://apuri.pl/planner/` — wymaga Basic Auth
-- `https://apuri.pl/stormbot/` — wymaga Basic Auth
+- `https://planner.apuri.pl` — wymaga Basic Auth
+- `https://stormbot.apuri.pl` — publiczna (bez hasła, jeśli znasz adres)
+- `https://apuri.pl/stormbot/` — wymaga Basic Auth, potem przekierowuje na subdomenę
+- Stara ścieżka `/planner/` przekierowuje na subdomenę Planner (301)
 
 ## Rozwiązywanie problemów
 
 **Brak certyfikatu SSL**
 - Sprawdź, czy DNS wskazuje na VPS (`dig apuri.pl`) — jeśli domena idzie przez Cloudflare, ustaw rekord A na IP VPS i wyłącz proxy (szara chmura) na czas certbota
 - Porty 80 i 443 muszą być otwarte w firewallu
-- Na VPS z hostowym Nginx: `sudo certbot --nginx -d apuri.pl -d www.apuri.pl`
+- Na VPS z hostowym Nginx: `sudo certbot --nginx -d apuri.pl -d www.apuri.pl -d planner.apuri.pl -d stormbot.apuri.pl`
 - Na czystym VPS z docker compose: `docker compose logs acme-companion`
 
-**401 Unauthorized na /planner lub /stormbot**
+**Subdomena pokazuje stronę główną apuri.pl**
+- Na VPS nie ma jeszcze obrazu z konfiguracją subdomen — zrób `git pull` i `docker compose -f docker-compose.host-nginx.yml pull && up -d`
+- Hostowy Nginx musi przekazywać subdomeny do kontenera — w `server_name` powinny być wszystkie: `apuri.pl www.apuri.pl planner.apuri.pl stormbot.apuri.pl` (plik `deploy/nginx/apuri.pl.conf`)
+- Usuń ewentualne stare, osobne pliki `planner.apuri.pl` / `stormbot.apuri.pl` z `sites-enabled`, jeśli kolidują
+- Po zmianie: `sudo nginx -t && sudo systemctl reload nginx`
+- Test na VPS: `curl -H "Host: stormbot.apuri.pl" http://127.0.0.1:8088/` — powinien zwrócić HTML Stormbota, nie landing page
+
+**401 Unauthorized na planner.apuri.pl lub /stormbot/**
 - Sprawdź, czy istnieje `secrets/htpasswd`
 - `docker compose restart apuri-web`
 
@@ -150,4 +169,4 @@ Każdy push na `main`:
 
 ## Podłączenie prawdziwych aplikacji (przyszłość)
 
-Gdy Planner lub Stormbot będą gotowe jako osobne kontenery, w `docker/nginx.conf` zamień serwowanie plików statycznych na `proxy_pass` do odpowiedniego backendu.
+Gdy Planner lub Stormbot będą gotowe jako osobne kontenery, w `docker/nginx.conf` zamień serwowanie plików statycznych w bloku `server_name planner.apuri.pl` / `stormbot.apuri.pl` na `proxy_pass` do odpowiedniego backendu.
