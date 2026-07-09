@@ -22,7 +22,7 @@ Statyczna strona główna dla domeny apuri.pl z wdrożeniem Docker na VPS i CI/C
 
 - **nginx-proxy** + **acme-companion** — reverse proxy z automatycznym Let's Encrypt
 - **apuri-web** — kontener Nginx ze stroną statyczną
-- `planner.apuri.pl` — chronione Basic Auth
+- `/planner/` — chronione Basic Auth na głównej domenie
 - `stormbot.apuri.pl` — publiczna subdomena; link `/stormbot/` na stronie głównej wymaga hasła i przekierowuje tam
 
 ## Lokalny podgląd
